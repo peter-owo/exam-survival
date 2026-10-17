@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#192a2a">
+<title>及格邊緣：Exam Survival</title>
+<style>
+  :root{color-scheme:dark;--ink:#263d39;--cream:#f3ead8;--muted:#abbab2;--gold:#e3b96a;--red:#ed765f} [hidden]{display:none!important}
+  *{box-sizing:border-box} body{margin:0;background:#172322;color:#f4efdf;font-family:system-ui,-apple-system,"Microsoft JhengHei",sans-serif;overflow:hidden} button{font:inherit;cursor:pointer} button:focus-visible{outline:3px solid #e8be6e;outline-offset:3px} button:disabled{cursor:default;opacity:.35}
+  #game{position:relative;width:100vw;height:100vh;min-height:580px;overflow:hidden;background:#52635b;isolation:isolate} #scene{position:absolute;inset:0;width:100%;height:100%;z-index:-2} #grain{position:absolute;inset:0;z-index:20;pointer-events:none;opacity:.14;background-image:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.05) 4px);mix-blend-mode:soft-light} #danger{position:absolute;inset:0;pointer-events:none;z-index:12;box-shadow:inset 0 0 130px 24px rgba(167,44,29,0);transition:box-shadow .3s}
+  .hud{position:absolute;top:0;left:0;right:0;z-index:6;padding:20px 4vw 0;display:grid;grid-template-columns:1fr minmax(180px,320px) 1fr;align-items:start;gap:20px;background:linear-gradient(#162623d9,transparent)} .hud-side{display:flex;align-items:center;gap:12px}.hud-side.right{justify-content:flex-end;text-align:right}.hud-icon{width:36px;height:36px;border:1px solid #ffffff57;display:grid;place-items:center;border-radius:50%;font-size:16px}.eyebrow{font-size:10px;letter-spacing:.18em;color:#d6dfd0;font-weight:800}.hud-big{font-family:Georgia,serif;font-size:27px;line-height:1.1;letter-spacing:.03em}.hud-small{font-size:11px;color:#d8ddd0}.susp-head{display:flex;justify-content:space-between;align-items:end;font-size:11px;letter-spacing:.12em;font-weight:800}.susp-head strong{font:18px Georgia,serif;color:#fff}.bar{margin-top:8px;height:6px;background:#ffffff40;border-radius:8px;overflow:hidden}.bar>i{display:block;width:0;height:100%;background:#85c2bf;transition:width .18s linear,background .3s}.risk-label{text-align:center;margin-top:6px;color:#e1e7da;font-size:10px;letter-spacing:.12em}
+  .game-badge{position:absolute;top:105px;left:4vw;z-index:4;display:flex;gap:10px;align-items:center;font-size:11px;letter-spacing:.14em;color:#f3eedf;text-shadow:0 1px 5px #253e36}.game-badge:before{content:"";width:25px;height:1px;background:#f3eedf}.notice{position:absolute;top:104px;left:50%;transform:translateX(-50%);z-index:7;padding:7px 15px;border-radius:2px;background:#20352dcc;color:#f5eddc;font-size:12px;letter-spacing:.08em;white-space:nowrap;box-shadow:0 4px 20px #1c2b2044}
+  .desk{position:absolute;z-index:1;left:-6%;right:-6%;bottom:-4%;height:31%;background:linear-gradient(180deg,#c99661 0%,#b37d4e 5%,#c59461 11%,#aa744a 100%);clip-path:polygon(11% 0,89% 0,100% 100%,0 100%);box-shadow:inset 0 8px #dbb182;transition:transform .5s,filter .5s}.desk:after{content:"";position:absolute;inset:12px 0 0;background:repeating-linear-gradient(2deg,transparent 0 48px,#744b2b20 49px 50px);pointer-events:none}
+  .paper{position:absolute;z-index:5;bottom:4.5%;left:50%;transform:translateX(-50%) rotate(-.6deg);width:min(615px,52vw);height:min(55vh,510px);min-height:375px;background:#f4eedf;color:#29352f;box-shadow:0 12px 35px #302a1d77,1px 1px 0 #fff inset;padding:18px 25px 14px;display:flex;flex-direction:column;transition:opacity .3s,transform .45s;overflow:hidden}.paper:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 31px,#786d4c0a 32px)}.paper.off{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(35px) scale(.96)} .paper.turn{animation:pageTurn .32s ease}@keyframes pageTurn{0%{transform:translateX(-50%) rotate(-.6deg)}45%{transform:translateX(-50%) scaleX(.94) rotate(1deg);filter:brightness(.9)}100%{transform:translateX(-50%) rotate(-.6deg)}}
+  .paper-top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #354a3d;padding-bottom:8px;gap:8px}.paper-top .label{font-size:9px;letter-spacing:.17em;color:#738073;font-weight:800}.paper h2{margin:2px 0 0;font-size:19px;letter-spacing:.14em}.paper-page{font:18px Georgia,serif;text-align:right;white-space:nowrap}.paper-page small{display:block;font:9px system-ui;letter-spacing:.12em;color:#778276}.paper-meta{display:flex;justify-content:space-between;font-size:10px;color:#7e8578;margin:7px 0 2px;letter-spacing:.03em}.questions{display:flex;flex-direction:column;justify-content:space-around;flex:1;min-height:0}.question{padding:4px 8px 5px;border-left:3px solid transparent;position:relative}.question.active{background:#e6e9da;border-color:#719584}.question-title{font-size:clamp(11px,1.14vw,14px);font-weight:700;line-height:1.25;white-space:normal}.qnum{font:italic bold 14px Georgia,serif;color:#9e7458;margin-right:8px}.options{display:flex;gap:4px;margin:3px 0 0 23px}.option{border:1px solid transparent;background:transparent;color:#4b5549;padding:2px 7px;border-radius:20px;font-size:clamp(10px,.95vw,12px);white-space:nowrap;min-width:40px}.option:hover{background:#d9e4d7}.option.chosen{border-color:#435f50;color:#294a3b;background:#cbdacb;font-weight:800}.paper-bottom{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #b6b9a8;padding-top:8px}.page-button{background:none;border:0;color:#597265;font-size:11px;font-weight:800;letter-spacing:.04em;padding:4px}.submit{border:0;background:#2b4c3d;color:#f8f0df;padding:8px 19px;font-size:11px;font-weight:800;letter-spacing:.1em}.submit:hover,.primary:hover{background:#42705a}
+  .pencil{position:absolute;z-index:3;bottom:9%;left:calc(50% + min(330px, 28vw));width:10px;height:180px;background:linear-gradient(90deg,#c89c3f,#e0bb68,#a77728);transform:rotate(24deg);box-shadow:3px 5px 9px #5e3d2780;border-radius:4px}.pencil:before{content:"";position:absolute;top:-15px;left:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:15px solid #d6c09a}.pencil:after{content:"";position:absolute;bottom:0;width:100%;height:20px;background:#e0b5a5}
+  .mirror-wrap{position:absolute;z-index:6;top:50%;right:10%;width:160px;transition:opacity .3s;user-select:none;touch-action:none;cursor:ew-resize}.mirror-shell{padding:7px;background:#46564c;border:2px solid #d4c6a2;border-radius:50%;box-shadow:0 9px 20px #19251d75, inset 0 0 0 3px #24352f}.mirror-shell canvas{display:block;width:100%;height:auto;border-radius:50%;background:#a9bfbd}.mirror-stand{height:32px;width:12px;margin:-2px auto 0;background:linear-gradient(90deg,#b8a277,#e6d5ac,#837253);position:relative;z-index:-1}.mirror-stand:after{content:"";position:absolute;bottom:-3px;left:-30px;width:72px;height:10px;background:#93805f;border-radius:50%;box-shadow:0 3px 5px #26382a66}.mirror-caption{text-align:center;color:#f4f0de;text-shadow:0 2px 4px #243c32;font-size:10px;margin-top:8px;letter-spacing:.08em}.mirror-wrap.adjusting .mirror-shell{outline:3px solid #e7be75;outline-offset:4px}.mirror-wrap.hidden{opacity:0;pointer-events:none}
+  .side-view,.drawer-view{position:absolute;z-index:5;inset:0;opacity:0;pointer-events:none;transition:opacity .3s}.side-view.visible,.drawer-view.visible{opacity:1}.side-desk{position:absolute;bottom:-9%;left:12%;width:76%;height:65%;background:linear-gradient(160deg,#d2a36d,#a57145);clip-path:polygon(11% 0,90% 0,100% 100%,0 100%);box-shadow:inset 0 8px #e9c499}.side-person{position:absolute;left:7%;bottom:25%;width:19%;height:31%;background:#405a53;border-radius:48% 48% 8% 8%;transform:rotate(7deg);box-shadow:inset -15px 0 #304740}.side-person:before{content:"";position:absolute;top:-70px;left:28%;width:83px;height:88px;border-radius:47% 48% 43% 43%;background:#c99d7b;box-shadow:inset 0 18px #3c3d35}.side-person:after{content:"";position:absolute;right:-28%;top:30%;width:90%;height:30px;background:#c99d7b;border-radius:30px;transform:rotate(25deg)}.side-paper{position:absolute;bottom:6%;left:50%;transform:translateX(-38%) rotate(1deg);width:min(610px,55vw);height:min(56vh,510px);min-height:380px;padding:18px 25px;background:#f5efdf;color:#26392f;box-shadow:0 12px 30px #442b1870;display:flex;flex-direction:column}.side-paper.flipping{animation:sideFlip .4s ease}@keyframes sideFlip{50%{transform:translateX(-38%) rotate(-1deg) scaleX(.94);filter:brightness(.9)}}.side-paper .question{padding:4px 7px}.side-paper .options{margin-top:3px}.side-paper .option{display:inline-block}.side-label{position:absolute;bottom:12%;left:12%;background:#23392fbf;color:#ede9db;padding:8px 12px;font-size:11px;letter-spacing:.1em}
+  .side-view.right .side-person{left:auto;right:7%;transform:scaleX(-1) rotate(7deg)}.side-view.right .side-label{left:auto;right:12%}.side-view.right .side-paper{transform:translateX(-62%) rotate(-1deg)}.side-view.right .side-paper.flipping{animation:sideFlipRight .4s ease}@keyframes sideFlipRight{50%{transform:translateX(-62%) rotate(1deg) scaleX(.94);filter:brightness(.9)}}
+  .drawer-view{background:linear-gradient(transparent 15%,#2b1d15b3 45%,#1c1814e8 100%)}.drawer{position:absolute;left:50%;bottom:-3%;transform:translateX(-50%);width:min(720px,80vw);height:65%;background:linear-gradient(#785034 0 11%,#34291e 12% 79%,#92623c 80%);border:12px solid #aa784d;box-shadow:0 0 40px #130f0b;border-radius:5px}.drawer:after{content:"";position:absolute;bottom:3%;left:42%;width:16%;height:9px;background:#d1b480;border-radius:9px}.note{position:absolute;top:20%;left:50%;transform:translateX(-50%) rotate(-3deg);width:65%;padding:18px 22px;background:#f3e9ca;color:#404136;box-shadow:0 6px 14px #15100b77;font-family:Georgia,"Microsoft JhengHei",serif}.note h3{margin:0 0 8px;font-size:18px}.note .scribble{font-size:12px;color:#867b63;border-bottom:1px solid #c7baa0;padding-bottom:8px}.note-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:15px;font-style:italic;font-size:18px}.note small{display:block;margin-top:18px;color:#83735f}
+  .controls{position:absolute;z-index:6;bottom:13px;left:50%;transform:translateX(-50%);display:flex;justify-content:center;gap:16px;color:#f3eadc;font-size:10px;white-space:nowrap;text-shadow:0 1px 4px #182821}.controls b,.key{display:inline-block;border:1px solid #e2e9d4a6;border-radius:3px;padding:2px 5px;margin-right:4px;font-size:10px;font-weight:800}.pause-btn{position:absolute;right:4vw;top:107px;z-index:7;background:#233a32a8;color:#f7f1df;border:1px solid #ffffff4d;padding:6px 10px;font-size:10px;letter-spacing:.08em}
+  .overlay{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:22px;background:#132420c9;backdrop-filter:blur(5px)}.overlay[hidden]{display:none}.modal{position:relative;width:min(660px,95vw);max-height:95vh;overflow:auto;background:#efe8d6;color:#263c32;box-shadow:0 25px 70px #101d18a8;padding:38px 45px}.modal:before{content:"";position:absolute;inset:10px;border:1px solid #acb4a0;pointer-events:none}.modal-kicker{font-size:10px;font-weight:900;letter-spacing:.25em;color:#849179}.modal h1{font-size:clamp(33px,4vw,52px);letter-spacing:.07em;margin:10px 0 0;line-height:1.15}.modal h1 span{display:block;font:italic 20px Georgia,serif;color:#b4875d;letter-spacing:.06em;margin-top:4px}.modal h2{font-size:28px;margin:10px 0}.intro{font-size:13px;line-height:1.8;color:#667469;margin:18px 0}.start-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0}.instruction{border-top:1px solid #b6bdae;padding-top:10px;font-size:12px;line-height:1.7;color:#68766b}.instruction b{color:#2f4b3c}.instruction .key{border-color:#9bad99;color:#314b3b;min-width:24px;text-align:center}.primary{background:#2c4c3d;color:#f8f2e4;border:0;padding:13px 25px;font-weight:800;letter-spacing:.12em}.secondary{background:transparent;color:#355346;border:1px solid #7e9584;padding:12px 20px;font-weight:700}.modal-actions{display:flex;gap:10px;align-items:center;margin-top:20px}.modal-foot{font-size:10px;color:#8d9b8b;margin-left:auto;letter-spacing:.08em}.result-score{font:64px Georgia,serif;color:#385b46}.result-score small{font:13px system-ui;color:#7c8f7e}.stats{display:flex;gap:26px;border-top:1px solid #b6bdae;border-bottom:1px solid #b6bdae;padding:15px 0;margin:16px 0;color:#718272;font-size:11px}.stats strong{display:block;font:24px Georgia,serif;color:#2e4c3d;margin-top:3px}.caught .modal{animation:shake .35s ease}@keyframes shake{25%{transform:translateX(-10px)}50%{transform:translateX(8px)}75%{transform:translateX(-4px)}}
+  @media(max-width:900px){.paper{width:min(600px,67vw);height:52vh;min-height:360px;padding:13px 18px}.mirror-wrap{right:3%;width:120px;top:53%}.side-paper{width:65vw}.hud{padding-left:3vw;padding-right:3vw}.controls{gap:8px;font-size:9px}.pencil{left:85%}.game-badge{display:none}.notice{top:96px}.question-title{font-size:11px}.option{font-size:10px;padding:1px 5px}.paper h2{font-size:16px}}
+  @media(max-height:700px){.paper{height:53vh;min-height:330px;bottom:6%;padding-top:10px;padding-bottom:8px}.paper-top{padding-bottom:5px}.question{padding-top:2px;padding-bottom:2px}.paper-meta{margin:3px 0}.mirror-wrap{top:49%;width:115px}.controls{bottom:5px}.side-paper{height:55vh;min-height:330px;padding-top:10px}.modal{padding-top:25px;padding-bottom:25px}}
+  /* 桌面透視：試卷和旁桌試卷都在同一張桌面上向遠處收斂。 */
+  .desk{height:48%}
+  .paper{transform-origin:50% 100%;transform:translateX(-50%) perspective(1100px) rotateX(32deg) rotateZ(-.6deg)}
+  .paper .question-title,.side-paper .question-title{font-size:clamp(12px,1.2vw,15px)}.paper .option,.side-paper .option{font-size:clamp(11px,1vw,13px)}
+  .paper.off{transform:translateX(-50%) translateY(35px) perspective(1100px) rotateX(32deg) scale(.96)}
+  @keyframes pageTurn{0%,100%{transform:translateX(-50%) perspective(1100px) rotateX(32deg) rotateZ(-.6deg)}45%{transform:translateX(-50%) perspective(1100px) rotateX(32deg) rotateZ(1deg) scaleX(.94);filter:brightness(.9)}}
+  .mirror-wrap{top:auto;bottom:31%;right:9%;width:160px}
+  .mirror-shell{border-radius:8px;padding:7px;transform:perspective(650px) rotateY(var(--mirror-turn,0deg));transform-origin:50% 100%;backface-visibility:hidden}.mirror-shell canvas{border-radius:2px}.mirror-stand:after{border-radius:3px}
+  .side-view{transform:translateX(-7%) scale(1.035);transition:opacity .38s ease,transform .5s ease}
+  .side-view.right{transform:translateX(7%) scale(1.035)}.side-view.visible{transform:translateX(0) scale(1)}
+  .side-desk{height:55%;bottom:-5%;background:repeating-linear-gradient(2deg,#c28f5d 0 62px,#a77349 63px 65px);clip-path:polygon(10% 0,90% 0,100% 100%,0 100%)}
+  .side-paper{transform-origin:50% 100%;transform:translateX(-38%) perspective(1000px) rotateX(30deg) rotateZ(1deg)}
+  .side-view.right .side-paper{transform:translateX(-62%) perspective(1000px) rotateX(30deg) rotateZ(-1deg)}
+  @keyframes sideFlip{50%{transform:translateX(-38%) perspective(1000px) rotateX(30deg) rotateZ(-1deg) scaleX(.94);filter:brightness(.9)}}
+  @keyframes sideFlipRight{50%{transform:translateX(-62%) perspective(1000px) rotateX(30deg) rotateZ(1deg) scaleX(.94);filter:brightness(.9)}}
+  .side-pencil{position:absolute;bottom:21%;left:80%;height:135px;width:9px;background:linear-gradient(90deg,#c99842,#e9c977,#a87527);border-radius:4px;transform:rotate(51deg);box-shadow:3px 3px 5px #633e2f70}.side-pencil:before{content:"";position:absolute;top:-12px;border-left:4.5px solid transparent;border-right:4.5px solid transparent;border-bottom:12px solid #dfcaa3}.side-eraser{position:absolute;left:77%;bottom:18%;width:45px;height:17px;background:#e3c9ab;box-shadow:2px 4px 5px #694a32aa;transform:rotate(8deg)}.side-view.right .side-pencil{left:18%;transform:rotate(-51deg)}.side-view.right .side-eraser{left:19%;transform:rotate(-8deg)}
+  .mirror-direction{height:39px;position:relative;margin:3px 8px 0}.mirror-track{position:absolute;top:18px;left:6%;right:6%;height:3px;background:#d8c49c;border-radius:4px;box-shadow:0 1px 4px #26382a99}.mirror-arrow{position:absolute;top:1px;left:50%;width:36px;height:36px;transform:translateX(-50%);border:2px solid #efe1b9;border-radius:50%;background:#2c4c3d;color:#fff4d5;box-shadow:0 3px 8px #1d3129a0;cursor:grab;touch-action:none;display:grid;place-items:center;padding:0}.mirror-arrow:active{cursor:grabbing}.mirror-arrow span{display:block;font-size:23px;line-height:1;font-weight:900;transform:rotate(var(--arrow-angle,0deg));pointer-events:none}.mirror-caption{margin-top:1px}.mirror-wrap{cursor:default}
+  .spot-alert{position:absolute;z-index:11;top:145px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:9px 16px;background:#5d2924ed;border:1px solid #ffb58b;color:#fff3d6;box-shadow:0 7px 24px #44241d88;font-size:13px;font-weight:800;letter-spacing:.06em;white-space:nowrap}.spot-alert strong{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#f7bb63;color:#6a2921;font:bold 24px Georgia,serif;animation:alertPulse .45s ease-in-out infinite alternate}.spot-alert .spot-track{width:75px;height:5px;background:#ffffff40;border-radius:4px;overflow:hidden}.spot-alert .spot-track i{display:block;width:100%;height:100%;background:#ffd17b;transform-origin:left center}@keyframes alertPulse{to{transform:scale(1.16)}}
+  @media(max-width:900px){.mirror-wrap{top:auto;bottom:32%;right:2%;width:120px}}
+  @media(max-height:700px){.mirror-wrap{top:auto;bottom:32%;width:115px}.paper{transform:translateX(-50%) perspective(1100px) rotateX(27deg) rotateZ(-.6deg)}}
+</style>
+</head>
+<body>
+<main id="game" aria-label="及格邊緣考試遊戲">
+  <canvas id="scene" aria-hidden="true"></canvas><div id="grain"></div><div id="danger"></div>
+  <div class="hud" id="hud" hidden>
+    <div class="hud-side"><div class="hud-icon">◷</div><div><div class="eyebrow">TIME REMAINING</div><div id="timer" class="hud-big">05:00</div></div></div>
+    <div><div class="susp-head"><span>可疑行為　SUSPICION</span><strong id="suspValue">00</strong></div><div class="bar"><i id="suspBar"></i></div><div id="riskLabel" class="risk-label">一切正常</div></div>
+    <div class="hud-side right"><div><div class="eyebrow">PROGRESS</div><div class="hud-big"><span id="done">0</span><span class="hud-small"> / 20 題</span></div></div><div class="hud-icon">✎</div></div>
+  </div>
+  <div id="gameBadge" class="game-badge" hidden>期末考試　 /　 數學科</div>
+  <div id="notice" class="notice" hidden>保持冷靜，先看看題目吧。</div>
+  <div id="spotAlert" class="spot-alert" role="status" aria-live="assertive" hidden><strong>!</strong><span id="spotText">老師發現抽屜異狀！快回正</span><span id="spotTimerTrack" class="spot-track"><i id="spotCountdown"></i></span></div>
+  <button id="pauseButton" class="pause-btn" hidden>Ⅱ　暫停 ESC</button>
+  <div class="desk" id="desk"></div><div class="pencil"></div>
+  <section class="paper" id="paper" aria-label="你的數學考卷">
+    <div class="paper-top"><div><div class="label">FINAL EXAMINATION　 /　 MATHEMATICS</div><h2>數學科期末試卷</h2></div><div class="paper-page"><span id="pageNo">1 / 4</span><small>PAGE</small></div></div>
+    <div class="paper-meta"><span>班級：高二　　座號：17　　姓名：____________</span><span>每題 5 分，共 100 分</span></div>
+    <div class="questions" id="questions"></div>
+    <div class="paper-bottom"><button class="page-button" id="prev">← 上一頁</button><button class="submit" id="submit">交卷 SUBMIT ↗</button><button class="page-button" id="next">下一頁 →</button></div>
+  </section>
+  <div class="mirror-wrap" id="mirror"><div class="mirror-shell"><canvas id="mirrorCanvas" width="250" height="150"></canvas></div><div class="mirror-stand"></div><div class="mirror-direction"><div class="mirror-track"></div><button class="mirror-arrow" id="mirrorArrow" type="button" role="slider" aria-label="拖曳箭頭調整鏡子方向" aria-valuemin="-70" aria-valuemax="70" aria-valuenow="0" title="左右拖曳箭頭，調整鏡子方向"><span>↑</span></button></div><div class="mirror-caption" id="mirrorCaption">拖曳箭頭調整方鏡</div></div>
+  <section class="side-view" id="sideView" aria-label="同學的考卷"><div class="side-desk"></div><div class="side-person"></div><div class="side-pencil"></div><div class="side-eraser"></div><div class="side-label" id="sideLabel">左側同學</div><div class="side-paper" id="sidePaper"></div></section>
+  <section class="drawer-view" id="drawerView" aria-label="抽屜裡的小抄"><div class="drawer"><div class="note"><h3>考前最後複習</h3><div class="scribble">記住公式，別被發現了……</div><div class="note-grid" id="noteGrid"></div><small>ax² + bx + c = 0　｜　x = (−b ± √(b² − 4ac)) / 2a</small></div></div></section>
+  <div class="controls" id="controls" hidden><span><b>A</b><b>D</b>偷看</span><span><b>S</b>抽屜</span><span><b>↔</b>拖曳鏡子箭頭</span><span><b>←</b><b>→</b>翻頁</span><span><b>1–4</b>作答</span><span><b>SPACE</b>回正</span></div>
+  <div class="overlay" id="startOverlay"><div class="modal"><div class="modal-kicker">A LITTLE CLASSROOM SURVIVAL GAME　 /　 01</div><h1>及格邊緣<span>Exam Survival</span></h1><p class="intro">五分鐘，二十道題，及格線是 60 分。<br>自己解題，或冒險尋找答案。老師可不會一直背對著你。</p><div class="start-grid"><div class="instruction"><b>觀察時機</b><br><span class="key">A</span><span class="key">D</span>按住偷看左／右同學<br><span class="key">S</span>按住查看抽屜小抄</div><div class="instruction"><b>留意動靜</b><br>滑鼠拖曳鏡子下方的方向箭頭<br>鏡中對到眼，老師會快步走近</div><div class="instruction"><b>完成試卷</b><br>滑鼠選題及作答，或按 <span class="key">1–4</span><br><span class="key">←</span><span class="key">→</span>翻頁，答案會保留</div><div class="instruction"><b>觀察老師朝向</b><br>老師看見偷看時可疑值快速上升；放開按鍵回正就能停止累積。</div></div><div class="modal-actions"><button class="primary" id="start">開始考試　 →</button><span class="modal-foot">一場關於時機與選擇的考試</span></div></div></div>
+  <div class="overlay" id="pauseOverlay" hidden><div class="modal"><div class="modal-kicker">EXAM PAUSED</div><h2>考試暫停</h2><p class="intro">時間和教室裡的動作都暫停了。準備好再繼續吧。</p><div class="modal-actions"><button class="primary" id="resume">繼續考試</button></div></div></div>
+  <div class="overlay" id="confirmOverlay" hidden><div class="modal"><div class="modal-kicker">SUBMIT EXAM</div><h2>確定要交卷嗎？</h2><p class="intro" id="confirmText"></p><div class="modal-actions"><button class="primary" id="confirmSubmit">確定交卷</button><button class="secondary" id="cancelSubmit">繼續作答</button></div></div></div>
+  <div class="overlay" id="resultOverlay" hidden><div class="modal"><div class="modal-kicker" id="resultKicker">EXAM RESULT</div><h2 id="resultTitle"></h2><p class="intro" id="resultText"></p><div id="resultDetails"></div><div class="modal-actions"><button class="primary" id="restart">再考一次　 ↻</button><span class="modal-foot">按 R 也可以重新開始</span></div></div></div>
+</main>
+<script>
+'use strict';
+// 所有平衡參數集中在此；時間單位皆為秒。
+const CONFIG = Object.freeze({examSeconds:300, teacherSpeed:.055, mirrorApproachMultiplier:2.4, sightDistance:.55, sightAngle:.68, spotGraceSeconds:1.3, sightRiskMultiplier:15, suspicionDecay:6, peekRate:2.2, drawerRate:3.2, rapidPenalty:9, leftAccuracy:.85, rightAccuracy:.95, mirrorDragSensitivity:1.3});
+// answer 為選項索引 0–3；題目、選項與正解共用於所有試卷。
+const QUESTIONS = [
+  {q:'若 3x + 5 = 20，則 x =？',o:['3','5','7','15'],a:1},
+  {q:'計算 2³ × 2² 的值。',o:['16','24','32','64'],a:2},
+  {q:'若 x² − 5x + 6 = 0，則 x 的解為？',o:['1 或 6','2 或 3','−2 或 −3','−1 或 −6'],a:1},
+  {q:'√81 + √16 =？',o:['11','12','13','14'],a:2},
+  {q:'直角三角形兩股長為 3、4，斜邊長為？',o:['5','6','7','8'],a:0},
+  {q:'若 f(x) = 2x − 1，則 f(4) =？',o:['5','6','7','8'],a:2},
+  {q:'計算 (x + 2)(x − 2) 的結果。',o:['x² + 4','x² − 4','x² − 2x','x² + 2x'],a:1},
+  {q:'解不等式 2x − 3 > 5。',o:['x > 1','x > 4','x < 4','x < 1'],a:1},
+  {q:'等差數列 2、5、8、11 的公差為？',o:['2','3','4','5'],a:1},
+  {q:'一個半徑為 3 的圓，其面積為？',o:['3π','6π','9π','12π'],a:2},
+  {q:'若 2x + y = 7，且 x = 2，則 y =？',o:['2','3','4','5'],a:1},
+  {q:'計算 3⁰ + 4² 的值。',o:['16','17','19','20'],a:1},
+  {q:'函數 y = −2x + 3 的斜率為？',o:['−2','−1','2','3'],a:0},
+  {q:'擲一顆公平骰子，出現偶數的機率為？',o:['1/6','1/3','1/2','2/3'],a:2},
+  {q:'若 x/3 = 4，則 x =？',o:['1','7','12','16'],a:2},
+  {q:'將 x² + 7x + 12 因式分解。',o:['(x+2)(x+6)','(x+3)(x+4)','(x−3)(x−4)','(x+1)(x+12)'],a:1},
+  {q:'三角形的兩內角為 50°、60°，第三角為？',o:['60°','70°','80°','90°'],a:1},
+  {q:'若 a = −2，則 a² − 3a =？',o:['−2','2','10','12'],a:2},
+  {q:'數列 1、2、4、8 的下一項為？',o:['10','12','14','16'],a:3},
+  {q:'點 (1, 2) 與 (4, 6) 的距離為？',o:['3','4','5','7'],a:2}
+];
+const $ = id => document.getElementById(id);
+const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
+const lerp = (a,b,t) => a+(b-a)*t;
+const rand = (a,b) => a+Math.random()*(b-a);
+const letter = n => 'ABCD'[n];
+const formatTime = s => {let n=Math.ceil(Math.max(0,s));return `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;};
+const PLAYER = {x:.5,y:.72};
+
+// ExamManager：試卷、答案與評分。
+const ExamManager = {
+  reset(){this.answers=Array(20).fill(null);this.page=0;this.selected=0;},
+  count(){return this.answers.filter(a=>a!==null).length;},
+  select(index,answer){if(GameManager.state!=='playing'||CameraController.target!=='front')return;this.selected=index;if(answer!==undefined)this.answers[index]=answer;UIManager.renderPaper();},
+  flip(d){if(GameManager.state!=='playing'||CameraController.target!=='front')return;let p=clamp(this.page+d,0,3);if(p===this.page)return;this.page=p;this.selected=p*5;UIManager.renderPaper();$('paper').classList.remove('turn');void $('paper').offsetWidth;$('paper').classList.add('turn');},
+  score(){const correct=this.answers.filter((a,i)=>a!==null&&a===QUESTIONS[i].a).length;const unanswered=20-this.count();return {correct,unanswered,wrong:20-correct-unanswered,score:correct*5};}
+};
+
+// CheatSystem：每局預先產生穩定但不保證全對的同學答案。
+const CheatSystem = {
+  makeStudent(accuracy,start){const answers=QUESTIONS.map(q=>Math.random()<accuracy?q.a:(q.a+1+Math.floor(Math.random()*3))%4);const filled=Array(20).fill(false);for(let i=0;i<start;i++)filled[i]=true;return {answers,filled,next:start,page:Math.floor(Math.min(start,19)/5),timer:rand(4,8)};},
+  reset(){this.left=this.makeStudent(CONFIG.leftAccuracy,5);this.right=this.makeStudent(CONFIG.rightAccuracy,8);this.left.page=0;this.right.page=1;let pool=Array.from({length:20},(_,i)=>i);for(let i=pool.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}this.notes=pool.slice(0,9).sort((a,b)=>a-b);$('noteGrid').innerHTML=this.notes.map(i=>`<span>Q${i+1}：${letter(QUESTIONS[i].a)}</span>`).join('');},
+  update(dt){for(const student of [this.left,this.right]){student.timer-=dt;if(student.timer<=0){let oldPage=student.page;if(student.next<20){student.filled[student.next]=true;student.page=Math.floor(student.next/5);student.next++;}else{student.page=(student.page+1)%4;}student.timer=rand(6,12);if(CheatSystem[CameraController.target]===student)UIManager.renderSide(oldPage!==student.page);}}}
+};
+
+// CameraController：只記錄按鍵意圖；渲染時以插值平滑轉頭。
+const CameraController = {
+  reset(){this.keys=new Set();this.target='front';this.x=0;this.down=0;this.lastSwitch=-10;},
+  setView(view){if(view===this.target)return;const now=GameManager.elapsed;if(view!=='front'&&now-this.lastSwitch<1.5)SuspicionSystem.add(CONFIG.rapidPenalty);if(GameManager.state==='result')return;if(view!=='front')this.lastSwitch=now;this.target=view;UIManager.updateView();if(GameManager.state==='playing')TeacherAI.updateSpotting(0);},
+  refresh(){this.setView(this.keys.has('s')?'drawer':this.keys.has('a')?'left':this.keys.has('d')?'right':'front');},
+  clear(){this.keys.clear();this.setView('front');MirrorSystem.dragging=false;},
+  update(dt){let tx=this.target==='left'?-1:this.target==='right'?1:0;this.x=lerp(this.x,tx,1-Math.exp(-5*dt));this.down=lerp(this.down,this.target==='drawer'?1:0,1-Math.exp(-5*dt));}
+};
+
+// TeacherAI：二維座標、行走方向與視野錐共同決定是否目擊作弊。
+const TeacherAI = {
+  reset(){this.x=.14;this.y=.12;this.angle=0;this.state='巡邏中';this.wait=1.5;this.target=null;this.route=0;this.alertCooldown=0;this.mirrorCooldown=0;this.mirrorApproaching=false;this.spotted=false;this.spotKind=null;this.spotElapsed=0;},
+  distance(){return Math.hypot(PLAYER.x-this.x,PLAYER.y-this.y);},
+  facingDot(){const dx=PLAYER.x-this.x,dy=PLAYER.y-this.y,d=Math.hypot(dx,dy);return d?(Math.cos(this.angle)*dx+Math.sin(this.angle)*dy)/d:1;},
+  // 姿勢同時供畫面與抓捕使用；側身左右以畫面上的教室方向為準。
+  pose(){const dot=this.facingDot();return dot>.55?'front':dot<-.45?'back':'side';},
+  sideDirection(){return Math.cos(this.angle)>=0?'right':'left';},
+  catchesPeek(side){const pose=this.pose();return pose==='front'||(pose==='side'&&this.sideDirection()===side);},
+  seesPlayer(){return this.distance()<=CONFIG.sightDistance&&this.facingDot()>Math.cos(CONFIG.sightAngle);},
+  // 偷看被目擊時提高可疑值；抽屜另有短暫的躲避倒數。
+  updateSpotting(dt){const view=CameraController.target;const kind=GameManager.state!=='playing'?null:view==='drawer'&&this.seesPlayer()?'drawer':(view==='left'||view==='right')&&this.catchesPeek(view)?'peek':null;if(!kind){this.spotted=false;this.spotKind=null;this.spotElapsed=0;return;}if(this.spotKind!==kind){this.spotted=true;this.spotKind=kind;this.spotElapsed=0;}if(kind==='drawer'){this.spotElapsed+=dt;if(this.spotElapsed>=CONFIG.spotGraceSeconds)GameManager.finish('caught');}},
+  mirrorEyeContact(){if(this.mirrorCooldown>0||this.mirrorApproaching)return;this.wait=0;this.target={x:PLAYER.x,y:PLAYER.y+.06};this.angle=Math.atan2(PLAYER.y-this.y,PLAYER.x-this.x);this.mirrorApproaching=true;this.mirrorCooldown=12;this.alertCooldown=Math.max(this.alertCooldown,12);this.state='快步靠近';},
+  chooseTarget(){const route=[{x:.82,y:.12},{x:.9,y:.4},{x:.82,y:.88},{x:.18,y:.88},{x:.1,y:.42},{x:.16,y:.12}];if(SuspicionSystem.value>=60&&this.alertCooldown<=0){this.target={x:Math.random()<.5?.33:.67,y:.62};this.alertCooldown=18;this.state='靠近觀察';}else{this.target=route[this.route%route.length];this.route++;this.state=SuspicionSystem.value>=30?'稍微警覺':'巡邏中';}},
+  update(dt){this.alertCooldown=Math.max(0,this.alertCooldown-dt);this.mirrorCooldown=Math.max(0,this.mirrorCooldown-dt);if(this.wait>0){this.wait-=dt;if(this.wait<=0)this.chooseTarget();}else if(this.target){let dx=this.target.x-this.x,dy=this.target.y-this.y,d=Math.hypot(dx,dy),step=CONFIG.teacherSpeed*(this.mirrorApproaching?CONFIG.mirrorApproachMultiplier:1)*dt;if(d<=step){this.x=this.target.x;this.y=this.target.y;this.target=null;this.wait=rand(1.8,3.7);this.state='停下觀察';if(this.mirrorApproaching){this.mirrorApproaching=false;this.angle=Math.atan2(PLAYER.y-this.y,PLAYER.x-this.x);}else if(this.distance()<.5&&Math.random()<.65)this.angle=Math.atan2(PLAYER.y-this.y,PLAYER.x-this.x);else this.angle=rand(-Math.PI,Math.PI);}else{this.x+=dx/d*step;this.y+=dy/d*step;this.angle=Math.atan2(dy,dx);}}
+    this.updateSpotting(dt);
+  }
+};
+
+// SuspicionSystem：所有速率依 delta time 計算，距離只放大增加量。
+const SuspicionSystem = {
+  reset(){this.value=0;},
+  add(n){this.value=clamp(this.value+n,0,100);if(this.value>=100&&GameManager.state==='playing')GameManager.finish('suspicion');},
+  update(dt){let rate=CameraController.target==='drawer'?CONFIG.drawerRate:CameraController.target!=='front'?CONFIG.peekRate:0;if(rate&&TeacherAI.spotted)rate*=CONFIG.sightRiskMultiplier;const d=TeacherAI.distance(),factor=d<.25?2.5:d<.5?1.5:1;this.add((rate?rate*factor:-CONFIG.suspicionDecay)*dt);}
+};
+
+// MirrorSystem：將玩家後方角度投影到鏡面；只在視錐內顯示真實老師。
+const MirrorSystem = {
+  reset(){this.angle=0;this.display=0;this.dragging=false;},
+  teacherVisible(){let dx=TeacherAI.x-PLAYER.x,dy=TeacherAI.y-PLAYER.y;return dy>0&&Math.abs(Math.atan2(dx,dy)*180/Math.PI-this.display)<38;},
+  update(dt){this.display=lerp(this.display,this.angle,1-Math.exp(-12*dt));if(CameraController.target==='front'&&this.teacherVisible()&&TeacherAI.seesPlayer())TeacherAI.mirrorEyeContact();this.draw();},
+  draw(){let c=$('mirrorCanvas'),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);let sky=ctx.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#c7d8d0');sky.addColorStop(.55,'#a0b5ab');sky.addColorStop(.56,'#a98e6e');sky.addColorStop(1,'#725d47');ctx.fillStyle=sky;ctx.fillRect(0,0,w,h);ctx.fillStyle='#d9e5d784';for(let i=0;i<4;i++)ctx.fillRect(i*72-((this.display+70)/140)*60,15,42,51);ctx.strokeStyle='#f3f3dc55';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(5,8);ctx.lineTo(75,8);ctx.lineTo(5,80);ctx.stroke();
+    let dx=TeacherAI.x-PLAYER.x,dy=TeacherAI.y-PLAYER.y;let bearing=Math.atan2(dx,dy)*180/Math.PI;let rel=bearing-this.display;if(this.teacherVisible()){let x=w/2+rel/38*w*.4,scale=clamp(1.2-Math.hypot(dx,dy)*.5,.65,1.2),pose=TeacherAI.pose(),side=TeacherAI.sideDirection()==='right'?1:-1;ctx.save();ctx.translate(x,h*.72);ctx.scale(scale,scale);ctx.fillStyle='#293e39';ctx.fillRect(pose==='side'?-8:-14,-29,pose==='side'?16:28,32);ctx.fillStyle=pose==='back'?'#39423b':'#e2b799';ctx.beginPath();ctx.ellipse(0,-39,pose==='side'?9:12,12,0,0,Math.PI*2);ctx.fill();if(pose!=='back'){ctx.fillStyle='#39423b';ctx.fillRect(pose==='side'?-9:-12,-50,pose==='side'?18:24,6);ctx.fillStyle='#fff';if(pose==='front'){ctx.fillRect(-7,-42,5,4);ctx.fillRect(2,-42,5,4);ctx.fillStyle='#24352f';ctx.fillRect(-5,-41,2,3);ctx.fillRect(4,-41,2,3);}else{ctx.fillRect(side*4-2,-42,4,4);ctx.fillStyle='#24352f';ctx.fillRect(side*4-1,-41,2,3);}}ctx.restore();}
+    const arrow=$('mirrorArrow');arrow.style.left=`${50+this.display/70*40}%`;arrow.style.setProperty('--arrow-angle',`${this.display}deg`);arrow.setAttribute('aria-valuenow',String(Math.round(this.angle)));arrow.setAttribute('aria-valuetext',`${Math.round(this.angle)} 度`);$('mirror').style.setProperty('--mirror-turn',`${this.display*.8}deg`);$('mirrorCaption').textContent=this.teacherVisible()&&TeacherAI.seesPlayer()?'鏡中對到眼了！':`拖曳箭頭轉向　${Math.round(this.angle)}°`;$('mirror').classList.toggle('adjusting',this.dragging);
+  }
+};
+
+// SceneRenderer：不使用圖片，透過 Canvas 畫出帶透視感的教室。
+const SceneRenderer = {
+  draw(){const c=$('scene'),ctx=c.getContext('2d');let dpr=Math.min(window.devicePixelRatio||1,2),w=window.innerWidth,h=window.innerHeight;if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);}ctx.setTransform(c.width/1600,0,0,c.height/900,0,0);ctx.clearRect(0,0,1600,900);ctx.save();ctx.translate(-CameraController.x*260,CameraController.down*135);
+    // 教室牆面與地板。
+    let wall=ctx.createLinearGradient(0,0,0,550);wall.addColorStop(0,'#c3cbb5');wall.addColorStop(1,'#9fae99');ctx.fillStyle=wall;ctx.fillRect(-350,0,2300,560);
+    ctx.fillStyle='#d4d9c4';ctx.beginPath();ctx.moveTo(-350,0);ctx.lineTo(1950,0);ctx.lineTo(1500,92);ctx.lineTo(100,92);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#91a28e';ctx.fillRect(-350,463,2300,24);ctx.fillStyle='#d0c7a8';ctx.fillRect(-350,487,2300,31);
+    ctx.fillStyle='#a67d58';ctx.beginPath();ctx.moveTo(-350,518);ctx.lineTo(1950,518);ctx.lineTo(1950,1050);ctx.lineTo(-350,1050);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='#765b45';ctx.lineWidth=3;for(let i=-8;i<=8;i++){ctx.beginPath();ctx.moveTo(800+i*88,518);ctx.lineTo(800+i*330,1000);ctx.stroke();}for(let y of [565,625,710,825]){ctx.beginPath();ctx.moveTo(-300,y);ctx.lineTo(1900,y);ctx.stroke();}
+    // 窗戶、陽光與黑板。
+    for(let i=0;i<3;i++){let x=-190+i*190;ctx.fillStyle='#6c8071';ctx.fillRect(x,125,155,270);ctx.fillStyle='#c7ded5';ctx.fillRect(x+9,135,137,250);ctx.fillStyle='#b3d1c8';ctx.fillRect(x+9,255,137,130);ctx.strokeStyle='#f2ead4';ctx.lineWidth=8;ctx.strokeRect(x+9,135,137,250);ctx.beginPath();ctx.moveTo(x+77,135);ctx.lineTo(x+77,385);ctx.moveTo(x+9,258);ctx.lineTo(x+146,258);ctx.stroke();}
+    ctx.fillStyle='#f8e9b226';ctx.beginPath();ctx.moveTo(-30,390);ctx.lineTo(275,390);ctx.lineTo(520,900);ctx.lineTo(10,900);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#755e48';ctx.fillRect(404,108,792,293);ctx.fillStyle='#304c3e';ctx.fillRect(417,120,766,270);ctx.strokeStyle='#8aa592';ctx.lineWidth=2;ctx.strokeRect(429,132,742,246);ctx.fillStyle='#e4e8d2';ctx.font='28px Georgia';ctx.fillText('MATHEMATICS',460,182);ctx.font='20px Georgia';ctx.fillStyle='#c1d5bc';ctx.fillText('x² + bx + c = 0',470,228);ctx.fillText('Think carefully.  Take your time.',470,267);ctx.strokeStyle='#b4c9b0';ctx.beginPath();ctx.moveTo(472,294);ctx.lineTo(813,294);ctx.stroke();ctx.font='15px sans-serif';ctx.fillText('期末考試　｜　保持安靜',470,330);
+    ctx.fillStyle='#d2d8c4';ctx.fillRect(1270,132,184,280);ctx.fillStyle='#789280';ctx.fillRect(1285,147,154,250);ctx.fillStyle='#e2e6d3';ctx.font='16px sans-serif';ctx.fillText('CLASS  2 - A',1310,186);ctx.strokeStyle='#d2dfcb';for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(1305,218+i*27);ctx.lineTo(1417,218+i*27);ctx.stroke();}
+    // 前方同學和課桌，先遠後近。
+    this.student(ctx,350,575,.8,'#617c6b');this.student(ctx,1250,575,.8,'#556e64');this.student(ctx,800,490,.9,'#536d63');
+    this.desk(ctx,350,620,.75);this.desk(ctx,1250,620,.75);this.desk(ctx,800,570,.75);
+    // 後方老師不出現在正前方，需透過鏡面觀察。
+    if(TeacherAI.y<.77){let tx=lerp(290,1310,TeacherAI.x),ty=425+TeacherAI.y*330,scale=.48+TeacherAI.y*.7;this.teacher(ctx,tx,ty,scale);}
+    ctx.restore();
+  },
+  desk(ctx,x,y,s){ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle='#786049';ctx.fillRect(-80,0,12,130);ctx.fillRect(68,0,12,130);ctx.fillStyle='#b88c60';ctx.beginPath();ctx.moveTo(-100,-20);ctx.lineTo(100,-20);ctx.lineTo(115,10);ctx.lineTo(-115,10);ctx.closePath();ctx.fill();ctx.fillStyle='#dfcba3';ctx.fillRect(-35,-16,67,18);ctx.restore();},
+  student(ctx,x,y,s,color){ctx.save();ctx.translate(x,y);ctx.scale(s,s);ctx.fillStyle='#3c524a';ctx.fillRect(-57,-30,114,100);ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(0,-83,72,80,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#d6b093';ctx.beginPath();ctx.arc(0,-165,38,0,Math.PI*2);ctx.fill();ctx.fillStyle='#39453d';ctx.beginPath();ctx.arc(0,-175,39,Math.PI,Math.PI*2);ctx.lineTo(39,-162);ctx.quadraticCurveTo(0,-178,-39,-162);ctx.fill();ctx.restore();},
+  teacher(ctx,x,y,s){
+    ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+    const pose=TeacherAI.pose(),side=TeacherAI.sideDirection()==='right'?1:-1;
+    ctx.fillStyle='#1c2d2750';ctx.beginPath();ctx.ellipse(0,8,45,12,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#374942';
+    if(pose==='side'){ctx.fillRect(-13,-102,14,100);ctx.fillRect(2,-102,14,100);}else{ctx.fillRect(-25,-102,20,100);ctx.fillRect(6,-102,20,100);}
+    ctx.fillStyle='#23342f';
+    if(pose==='side'){ctx.fillRect(-16,-10,18,13);ctx.fillRect(3,-10,18,13);}else{ctx.fillRect(-30,-10,27,13);ctx.fillRect(4,-10,27,13);}
+    ctx.fillStyle=pose==='back'?'#b8c9b8':'#d6e0cf';ctx.beginPath();
+    if(pose==='side'){ctx.moveTo(-20,-205);ctx.lineTo(20,-205);ctx.lineTo(24,-94);ctx.lineTo(-24,-94);}
+    else{ctx.moveTo(-37,-205);ctx.lineTo(35,-205);ctx.lineTo(40,-94);ctx.lineTo(-40,-94);}ctx.closePath();ctx.fill();
+    if(pose==='side'){ctx.fillStyle='#b1c3b0';ctx.fillRect(-5,-193,10,64);ctx.fillStyle='#d4aa8b';ctx.fillRect(-5,-133,10,10);}
+    else if(pose==='front'){ctx.fillStyle='#68796d';ctx.fillRect(-4,-200,8,67);}
+    ctx.fillStyle=pose==='back'?'#39423b':'#d4aa8b';ctx.beginPath();ctx.ellipse(0,-230,pose==='side'?20:27,27,0,0,Math.PI*2);ctx.fill();
+    if(pose==='side'){ctx.beginPath();ctx.moveTo(side*17,-234);ctx.lineTo(side*29,-225);ctx.lineTo(side*17,-220);ctx.closePath();ctx.fill();}
+    if(pose!=='back'){
+      ctx.fillStyle='#39423b';ctx.beginPath();ctx.ellipse(0,-241,pose==='side'?20:27,16,0,Math.PI,Math.PI*2);ctx.lineTo(pose==='side'?20:27,-234);ctx.lineTo(pose==='side'?-20:-27,-234);ctx.fill();ctx.fillStyle='#fff';
+      if(pose==='front'){ctx.fillRect(-14,-232,9,7);ctx.fillRect(5,-232,9,7);ctx.fillStyle='#25362f';ctx.fillRect(-11,-231,4,6);ctx.fillRect(8,-231,4,6);}
+      else{ctx.fillRect(side*11-4,-232,8,7);ctx.fillStyle='#25362f';ctx.fillRect(side*11-2,-231,4,6);}
+    }
+    ctx.fillStyle='#e5e9d7';ctx.font='bold 17px sans-serif';ctx.textAlign='center';ctx.fillText(`監考老師 · ${pose==='front'?'正面':pose==='back'?'背對':`側身 ${side>0?'→':'←'}`}`,0,-278);
+    if(TeacherAI.spotted){ctx.fillStyle='#f7bb63';ctx.beginPath();ctx.arc(0,-320,21,0,Math.PI*2);ctx.fill();ctx.fillStyle='#7b3026';ctx.font='bold 32px Georgia';ctx.fillText('!',0,-309);}ctx.restore();
+  }
+};
+
+// UIManager：只負責畫面更新，題目資料與狀態由各系統管理。
+const UIManager = {
+  renderPaper(){const start=ExamManager.page*5;$('pageNo').textContent=`${ExamManager.page+1} / 4`;$('prev').disabled=ExamManager.page===0;$('next').disabled=ExamManager.page===3;$('questions').innerHTML=QUESTIONS.slice(start,start+5).map((q,n)=>{let i=start+n;return `<div class="question ${ExamManager.selected===i?'active':''}" data-question="${i}"><div class="question-title"><span class="qnum">${String(i+1).padStart(2,'0')}.</span>${q.q}</div><div class="options">${q.o.map((o,j)=>`<button class="option ${ExamManager.answers[i]===j?'chosen':''}" data-answer="${j}" aria-label="第 ${i+1} 題 ${letter(j)} ${o}" aria-pressed="${ExamManager.answers[i]===j}">${letter(j)}. ${o}</button>`).join('')}</div></div>`;}).join('');$('done').textContent=ExamManager.count();document.querySelector('.paper-meta span:last-child').textContent=`已作答 ${ExamManager.count()} / 20　｜　每題 5 分`;},
+  renderSide(flipping=false){let side=CameraController.target;if(side!=='left'&&side!=='right')return;let student=CheatSystem[side],start=student.page*5;$('sideLabel').textContent=side==='left'?'左側同學　／　按住 A':'右側同學　／　按住 D';$('sidePaper').innerHTML=`<div class="paper-top"><div><div class="label">FINAL EXAMINATION　 /　 MATHEMATICS</div><h2>數學科期末試卷</h2></div><div class="paper-page">${student.page+1} / 4<small>PAGE</small></div></div><div class="paper-meta"><span>同學的考卷</span><span>作答進度依同學而異</span></div><div class="questions">${QUESTIONS.slice(start,start+5).map((q,n)=>{let i=start+n;return `<div class="question"><div class="question-title"><span class="qnum">${String(i+1).padStart(2,'0')}.</span>${q.q}</div><div class="options">${q.o.map((o,j)=>`<span class="option ${student.filled[i]&&student.answers[i]===j?'chosen':''}">${letter(j)}. ${o}</span>`).join('')}</div></div>`;}).join('')}</div><div class="paper-bottom"><span class="paper-meta">請自行記下答案，再回到自己的考卷。</span></div>`;if(flipping){$('sidePaper').classList.remove('flipping');void $('sidePaper').offsetWidth;$('sidePaper').classList.add('flipping');}},
+  updateView(){let v=CameraController.target;$('paper').classList.toggle('off',v!=='front');$('sideView').classList.toggle('visible',v==='left'||v==='right');$('sideView').classList.toggle('right',v==='right');$('drawerView').classList.toggle('visible',v==='drawer');$('mirror').classList.toggle('hidden',v!=='front');if(v==='left'||v==='right')this.renderSide();},
+  update(){const v=SuspicionSystem.value;$('timer').textContent=formatTime(GameManager.remaining);$('suspValue').textContent=String(Math.floor(v)).padStart(2,'0');$('suspBar').style.width=`${v}%`;$('suspBar').style.background=v>=90?'#e66b58':v>=60?'#df9a5c':v>=30?'#e6ca79':'#85c2bf';$('riskLabel').textContent=v>=90?'極度危險':v>=60?'高度警覺':v>=30?'有些可疑':'一切正常';$('danger').style.boxShadow=`inset 0 0 ${90+v*.8}px ${Math.max(0,v-55)*.55}px rgba(167,44,29,${Math.max(0,v-45)/135})`;
+    $('spotAlert').hidden=GameManager.state!=='playing'||!TeacherAI.spotted;$('spotText').textContent=TeacherAI.spotKind==='peek'?'老師看到偷看！可疑值快速上升，快回正':'老師發現抽屜異狀！快回正';$('spotTimerTrack').hidden=TeacherAI.spotKind!=='drawer';$('spotCountdown').style.transform=`scaleX(${clamp(1-TeacherAI.spotElapsed/CONFIG.spotGraceSeconds,0,1)})`;let message=TeacherAI.spotted?'被看見了，快回正！':TeacherAI.mirrorApproaching?'鏡中對到老師的眼！他正快步靠近……':GameManager.remaining<=30?'考試時間只剩 30 秒！':v>=60?'你的行為引起注意，先冷靜下來。':TeacherAI.seesPlayer()?'小心，老師正面向這裡。':TeacherAI.distance()<.3?'腳步聲靠近了……':'保持冷靜，留意老師的動向。';$('notice').textContent=message;}
+};
+
+// GameManager：唯一遊戲迴圈與開始、暫停、交卷、結算狀態。
+const GameManager = {
+  state:'start',remaining:CONFIG.examSeconds,elapsed:0,last:0,
+  start(){this.state='playing';this.remaining=CONFIG.examSeconds;this.elapsed=0;this.last=performance.now();ExamManager.reset();CameraController.reset();SuspicionSystem.reset();TeacherAI.reset();CheatSystem.reset();MirrorSystem.reset();$('startOverlay').hidden=true;$('pauseOverlay').hidden=true;$('confirmOverlay').hidden=true;$('resultOverlay').hidden=true;$('resultOverlay').classList.remove('caught');for(const id of ['hud','gameBadge','notice','controls','pauseButton'])$(id).hidden=false;UIManager.renderPaper();UIManager.updateView();UIManager.update();},
+  pause(){if(this.state!=='playing')return;CameraController.clear();this.state='paused';$('pauseOverlay').hidden=false;},
+  resume(){if(this.state!=='paused')return;this.state='playing';this.last=performance.now();$('pauseOverlay').hidden=true;},
+  requestSubmit(){if(this.state!=='playing'||CameraController.target!=='front')return;if(ExamManager.count()<20){CameraController.clear();this.state='confirm';$('confirmText').textContent=`你還有 ${20-ExamManager.count()} 題未作答；未填的題目將以錯誤計算。`; $('confirmOverlay').hidden=false;}else this.finish('submit');},
+  cancelSubmit(){if(this.state!=='confirm')return;this.state='playing';this.last=performance.now();$('confirmOverlay').hidden=true;},
+  finish(reason){if(this.state!=='playing'&&this.state!=='confirm')return;CameraController.clear();this.state='result';$('confirmOverlay').hidden=true;$('pauseOverlay').hidden=true;let result=ExamManager.score(),submitted=reason==='submit'||reason==='timeout',won=submitted&&result.score>=60;let title=won?'恭喜！成功及格且沒有被抓到！':reason==='caught'?'被老師抓到了！':reason==='suspicion'?'動作太可疑了！':'成績不及格';let text=won?'你安全地完成了這場考試。':reason==='caught'?'監考老師發現了你的作弊，考試結束。':reason==='suspicion'?'你的反常舉動引起老師注意，考試立即終止。':'距離及格線還差一點。再試一次吧。';$('resultKicker').textContent=won?'EXAM PASSED　／　及格':reason==='caught'?'ENDING A　／　作弊被抓':reason==='suspicion'?'ENDING C　／　動作太可疑':'ENDING B　／　成績不及格';$('resultTitle').textContent=title;$('resultText').textContent=text;$('resultDetails').innerHTML=submitted?`<div class="result-score">${result.score}<small> / 100 分</small></div><div class="stats"><div>答對<strong>${result.correct}</strong></div><div>答錯<strong>${result.wrong}</strong></div><div>未作答<strong>${result.unanswered}</strong></div><div>考試時間<strong>${formatTime(this.elapsed)}</strong></div></div>`:'';$('resultOverlay').classList.toggle('caught',!submitted);$('resultOverlay').hidden=false;},
+  frame(now){let dt=Math.max(0,(now-this.last)/1000);this.last=now;if(this.state==='playing'){while(dt>0&&this.state==='playing'){let step=Math.min(dt,.1,this.remaining);dt-=step;this.elapsed+=step;this.remaining=Math.max(0,this.remaining-step);CameraController.update(step);CheatSystem.update(step);TeacherAI.update(step);if(this.state==='playing')MirrorSystem.update(step);if(this.state==='playing')SuspicionSystem.update(step);if(this.state==='playing'&&this.remaining<=0)this.finish('timeout');}UIManager.update();}SceneRenderer.draw();requestAnimationFrame(t=>this.frame(t));}
+};
+
+// 操作：按住視角鍵不會因 key repeat 累積；失焦時清除所有狀態並暫停。
+$('start').addEventListener('click',()=>GameManager.start());$('restart').addEventListener('click',()=>GameManager.start());$('pauseButton').addEventListener('click',()=>GameManager.pause());$('resume').addEventListener('click',()=>GameManager.resume());$('prev').addEventListener('click',()=>ExamManager.flip(-1));$('next').addEventListener('click',()=>ExamManager.flip(1));$('submit').addEventListener('click',()=>GameManager.requestSubmit());$('confirmSubmit').addEventListener('click',()=>GameManager.finish('submit'));$('cancelSubmit').addEventListener('click',()=>GameManager.cancelSubmit());
+$('questions').addEventListener('click',e=>{let row=e.target.closest('[data-question]');if(!row)return;let index=Number(row.dataset.question),button=e.target.closest('[data-answer]');ExamManager.select(index,button?Number(button.dataset.answer):undefined);});
+document.addEventListener('keydown',e=>{let k=e.key.toLowerCase();if(['a','d','s',' ','arrowleft','arrowright','1','2','3','4','escape','r'].includes(k))e.preventDefault();if(k==='r'&&GameManager.state==='result'&&!e.repeat){GameManager.start();return;}if(k==='escape'&&!e.repeat){if(GameManager.state==='playing')GameManager.pause();else if(GameManager.state==='paused')GameManager.resume();else if(GameManager.state==='confirm')GameManager.cancelSubmit();return;}if(GameManager.state!=='playing')return;if(['a','d','s'].includes(k)){if(!e.repeat){CameraController.keys.add(k);CameraController.refresh();}}else if(k===' '){CameraController.clear();}else if(k==='arrowleft'&&!e.repeat)ExamManager.flip(-1);else if(k==='arrowright'&&!e.repeat)ExamManager.flip(1);else if(['1','2','3','4'].includes(k)&&!e.repeat)ExamManager.select(ExamManager.selected,Number(k)-1);});
+document.addEventListener('keyup',e=>{let k=e.key.toLowerCase();if(['a','d','s'].includes(k)){CameraController.keys.delete(k);if(GameManager.state==='playing')CameraController.refresh();}});
+window.addEventListener('blur',()=>{if(GameManager.state==='playing')GameManager.pause();else CameraController.clear();});document.addEventListener('visibilitychange',()=>{if(document.hidden&&GameManager.state==='playing')GameManager.pause();});
+const mirrorArrow=$('mirrorArrow');
+function adjustMirror(delta){let before=MirrorSystem.angle;MirrorSystem.angle=clamp(before+delta,-70,70);let d=TeacherAI.distance(),factor=d<.25?2.5:d<.5?1.5:1;SuspicionSystem.add(Math.abs(MirrorSystem.angle-before)*.06*factor);}
+mirrorArrow.addEventListener('pointerdown',e=>{if(GameManager.state!=='playing'||CameraController.target!=='front')return;MirrorSystem.dragging=true;MirrorSystem.lastPointer=e.clientX;mirrorArrow.setPointerCapture(e.pointerId);e.preventDefault();});
+mirrorArrow.addEventListener('pointermove',e=>{if(!MirrorSystem.dragging||GameManager.state!=='playing')return;adjustMirror((e.clientX-MirrorSystem.lastPointer)*CONFIG.mirrorDragSensitivity);MirrorSystem.lastPointer=e.clientX;});
+for(const eventName of ['pointerup','pointercancel','lostpointercapture'])mirrorArrow.addEventListener(eventName,()=>{MirrorSystem.dragging=false;});
+mirrorArrow.addEventListener('keydown',e=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;e.preventDefault();e.stopPropagation();if(GameManager.state==='playing'&&CameraController.target==='front')adjustMirror(e.key==='ArrowLeft'?-5:5);});
+// 初始化預覽場景；遊戲直到玩家按下開始才計時。
+ExamManager.reset();CameraController.reset();SuspicionSystem.reset();TeacherAI.reset();MirrorSystem.reset();UIManager.renderPaper();MirrorSystem.draw();GameManager.last=performance.now();requestAnimationFrame(t=>GameManager.frame(t));
+</script>
+</body>
+</html>
